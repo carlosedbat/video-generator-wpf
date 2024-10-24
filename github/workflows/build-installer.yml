@@ -1,0 +1,51 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v3
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: Install Visual Studio Build Tools
+      run: |
+        choco install visualstudio2022buildtools -y --package-parameters "--add Microsoft.VisualStudio.Component.Group.UWP.VC --add Microsoft.VisualStudio.Component.Windows10SDK.19041"
+
+    - name: Restore NuGet Packages
+      run: nuget restore YourSolution.sln
+
+    - name: Build the Solution
+      run: |
+        msbuild YourSolution.sln /p:Configuration=Release
+
+    - name: Create the Installer
+      run: |
+        msbuild YourPackagingProject.wapproj /p:Configuration=Release
+
+    - name: Archive the Installer
+      uses: actions/upload-artifact@v3
+      with:
+        name: WindowsInstaller
+        path: '**/Release/**/*.msix'
+
+    - name: Deploy installer as release asset
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: '**/Release/**/*.msix'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
