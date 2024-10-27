@@ -23,14 +23,13 @@ jobs:
 
     - name: Install Visual Studio Build Tools
       run: |
-        choco install visualstudio2022buildtools -y --package-parameters "--add Microsoft.VisualStudio.Component.Group.UWP.VC --add Microsoft.VisualStudio.Component.Windows10SDK.19041"
+        choco install visualstudio2022buildtools -y --package-parameters "--add Microsoft.VisualStudio.Component.CoreBuildTools --add Microsoft.VisualStudio.Component.NetCoreBuildTools --add Microsoft.VisualStudio.Component.Windows10SDK.19041"
 
     - name: Restore NuGet Packages
-      run: nuget restore VideoGenerator.sln
-
+      run: dotnet restore VideoGenerator.sln
+    
     - name: Build the Solution
-      run: |
-        msbuild VideoGenerator.sln /p:Configuration=Release
+      run: dotnet build VideoGenerator.sln --configuration Release
 
     - name: Create the Installer
       run: |
